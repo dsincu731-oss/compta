@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre — Trésorerie de guilde</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --ink: #14120F;
+  --panel: #1E1B16;
+  --panel-alt: #262119;
+  --panel-raised: #2A2419;
+  --line: #3A3226;
+  --line-soft: #2C2720;
+  --gold: #C9A227;
+  --gold-bright: #E0BC3E;
+  --cream: #EDE6D6;
+  --muted: #9C917E;
+  --muted-dim: #6E6555;
+  --green: #7DA671;
+  --green-text: #A9CE9C;
+  --red: #C1503C;
+  --red-text: #E39485;
+  --margin-red: #7A3230;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--ink);
+  color:var(--cream);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  padding:40px 20px 80px;
+}
+
+.wrap{max-width:960px;margin:0 auto;}
+
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin:0 0 6px;
+}
+
+header.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:24px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+  padding-bottom:28px;
+  margin-bottom:32px;
+}
+
+.guild-name{
+  font-family:'Fraunces',serif;
+  font-weight:500;
+  font-size:34px;
+  margin:0;
+  color:var(--cream);
+  cursor:text;
+}
+.guild-name:hover{color:var(--gold-bright);}
+
+.seal{
+  position:relative;
+  width:168px;
+  height:168px;
+  border-radius:50%;
+  border:2px solid var(--gold);
+  outline:1px solid var(--line);
+  outline-offset:6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  transform:rotate(-3deg);
+  background:radial-gradient(circle at 50% 40%, var(--panel-raised), var(--panel));
+  flex-shrink:0;
+}
+.seal .lbl{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+.seal .amt{
+  font-family:'Fraunces',serif;
+  font-size:26px;
+  font-weight:600;
+  line-height:1;
+  text-align:center;
+  padding:0 10px;
+}
+.seal .unit{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  color:var(--muted);
+  margin-top:6px;
+}
+.seal.pos .amt{color:var(--green-text);}
+.seal.neg .amt{color:var(--red-text);}
+
+.settings-toggle{
+  background:none;border:none;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  padding:0;margin-top:8px;
+}
+.settings-toggle:hover{color:var(--gold);}
+
+.settings-panel{
+  display:none;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:18px 20px;
+  margin-bottom:28px;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.settings-panel.open{display:flex;}
+.settings-panel .field{flex:1;min-width:180px;}
+
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:14px;
+  margin-bottom:36px;
+}
+.stat{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:16px 18px;
+}
+.stat .k{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 8px;
+}
+.stat .v{
+  font-family:'Fraunces',serif;
+  font-size:22px;
+  font-weight:500;
+  margin:0;
+}
+.stat.entree .v{color:var(--green-text);}
+.stat.sortie .v{color:var(--red-text);}
+
+.section-title{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.section-title::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--line);
+}
+
+form.entry-form{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:22px;
+  margin-bottom:40px;
+}
+
+.type-toggle{
+  display:inline-flex;
+  border:1px solid var(--line);
+  border-radius:4px;
+  overflow:hidden;
+  margin-bottom:18px;
+}
+.type-toggle button{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  background:var(--panel-alt);
+  color:var(--muted);
+  border:none;
+  padding:9px 22px;
+  cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.type-toggle button.active[data-type="entree"]{background:var(--green);color:#132212;}
+.type-toggle button.active[data-type="sortie"]{background:var(--red);color:#2A0F0A;}
+.type-toggle button:not(.active):hover{color:var(--cream);}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px 20px;
+}
+.form-grid .full{grid-column:1/-1;}
+
+label{
+  display:block;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+input[type="text"],input[type="number"],input[type="date"],select,textarea{
+  width:100%;
+  background:var(--ink);
+  border:1px solid var(--line);
+  border-radius:3px;
+  color:var(--cream);
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  padding:9px 11px;
+  outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);}
+input[type="date"]{color-scheme:dark;}
+
+.submit-row{
+  margin-top:20px;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:12px;
+}
+.err-msg{font-size:12px;color:var(--red-text);font-family:'IBM Plex Mono',monospace;}
+
+button.primary{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  background:var(--gold);
+  color:#211A08;
+  border:none;
+  border-radius:3px;
+  padding:11px 24px;
+  cursor:pointer;
+  font-weight:600;
+}
+button.primary:hover{background:var(--gold-bright);}
+button.ghost{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  background:none;
+  border:1px solid var(--line);
+  color:var(--muted);
+  border-radius:3px;
+  padding:6px 12px;
+  cursor:pointer;
+}
+button.ghost:hover{color:var(--cream);border-color:var(--muted);}
+
+.filters{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.filters input,.filters select{width:auto;min-width:160px;}
+.filters input[type="text"]{flex:1;min-width:200px;}
+
+.ledger{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:8px 8px 8px 44px;
+  overflow-x:auto;
+}
+.ledger::before{
+  content:'';
+  position:absolute;
+  left:32px;
+  top:0;
+  bottom:0;
+  width:1px;
+  background:var(--margin-red);
+  opacity:.55;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12.5px;
+  min-width:760px;
+}
+thead th{
+  text-align:left;
+  font-size:10px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted-dim);
+  font-weight:500;
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  white-space:nowrap;
+}
+tbody td{
+  padding:11px 12px;
+  border-bottom:1px solid var(--line-soft);
+  vertical-align:top;
+  color:var(--cream);
+}
+tbody tr:hover{background:var(--panel-alt);}
+tbody tr:last-child td{border-bottom:none;}
+
+.badge{
+  display:inline-block;
+  font-size:10px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  padding:3px 8px;
+  border-radius:3px;
+  font-weight:600;
+}
+.badge.entree{background:rgba(125,166,113,0.15);color:var(--green-text);}
+.badge.sortie{background:rgba(193,80,60,0.15);color:var(--red-text);}
+
+.cat-tag{
+  font-size:11px;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.amt-cell.entree{color:var(--green-text);}
+.amt-cell.sortie{color:var(--red-text);}
+
+.del-btn{
+  background:none;border:none;color:var(--muted-dim);
+  cursor:pointer;font-size:14px;line-height:1;padding:2px 4px;
+}
+.del-btn:hover{color:var(--red-text);}
+
+.empty{
+  padding:50px 20px;
+  text-align:center;
+  color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+}
+
+.foot-note{
+  margin-top:30px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  color:var(--muted-dim);
+  text-align:center;
+  line-height:1.7;
+}
+
+@media(max-width:640px){
+  .form-grid{grid-template-columns:1fr;}
+  header.top{flex-direction:column;align-items:flex-start;}
+  .seal{width:140px;height:140px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Overworld · Registre comptable de guilde</p>
+  <header class="top">
+    <div>
+      <h1 class="guild-name" id="guildNameDisplay" contenteditable="false" spellcheck="false">Ma Guilde</h1>
+      <button class="settings-toggle" id="settingsToggleBtn" type="button">⚙ Paramètres</button>
+    </div>
+    <div class="seal" id="seal">
+      <p class="lbl">Solde actuel</p>
+      <p class="amt" id="sealAmt">0</p>
+      <p class="unit" id="sealUnit">Golds</p>
+    </div>
+  </header>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="field">
+      <label for="guildNameInput">Nom de la guilde</label>
+      <input type="text" id="guildNameInput" placeholder="Ma Guilde">
+    </div>
+    <div class="field">
+      <label for="currencyInput">Unité monétaire</label>
+      <input type="text" id="currencyInput" placeholder="Golds">
+    </div>
+    <div class="field" style="display:flex;align-items:flex-end;">
+      <button class="primary" id="saveSettingsBtn" type="button">Enregistrer</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat entree">
+      <p class="k">Total entrées</p>
+      <p class="v" id="statEntree">0</p>
+    </div>
+    <div class="stat sortie">
+      <p class="k">Total sorties</p>
+      <p class="v" id="statSortie">0</p>
+    </div>
+    <div class="stat">
+      <p class="k">Transactions</p>
+      <p class="v" id="statCount">0</p>
+    </div>
+  </div>
+
+  <p class="section-title">Nouvelle écriture</p>
+  <form class="entry-form" id="entryForm">
+    <div class="type-toggle" id="typeToggle">
+      <button type="button" class="active" data-type="entree">Entrée</button>
+      <button type="button" data-type="sortie">Sortie</button>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label for="amountInput">Montant</label>
+        <input type="number" id="amountInput" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div>
+        <label for="dateInput">Date</label>
+        <input type="date" id="dateInput">
+      </div>
+      <div>
+        <label for="categoryInput">Catégorie</label>
+        <select id="categoryInput">
+          <option value="Cotisation">Cotisation membre</option>
+          <option value="Vente">Vente d'objets</option>
+          <option value="Don">Don</option>
+          <option value="Quete">Récompense de quête</option>
+          <option value="Materiel">Achat de matériel</option>
+          <option value="Logistique">Frais de logistique</option>
+          <option value="Evenement">Événement de guilde</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+      <div>
+        <label for="authorInput">Enregistré par</label>
+        <input type="text" id="authorInput" placeholder="Pseudo Roblox">
+      </div>
+      <div class="full">
+        <label for="reasonInput">Raison</label>
+        <input type="text" id="reasonInput" placeholder="Ex. Cotisation hebdomadaire de MembreXYZ">
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <span class="err-msg" id="formError"></span>
+      <button type="submit" class="primary">Ajouter au registre</button>
+    </div>
+  </form>
+
+  <p class="section-title">Registre des transactions</p>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Rechercher une raison...">
+    <select id="filterType">
+      <option value="all">Tous les types</option>
+      <option value="entree">Entrées</option>
+      <option value="sortie">Sorties</option>
+    </select>
+    <select id="filterCategory">
+      <option value="all">Toutes les catégories</option>
+      <option value="Cotisation">Cotisation membre</option>
+      <option value="Vente">Vente d'objets</option>
+      <option value="Don">Don</option>
+      <option value="Quete">Récompense de quête</option>
+      <option value="Materiel">Achat de matériel</option>
+      <option value="Logistique">Frais de logistique</option>
+      <option value="Evenement">Événement de guilde</option>
+      <option value="Autre">Autre</option>
+    </select>
+  </div>
+
+  <div class="ledger">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Raison</th>
+          <th>Catégorie</th>
+          <th>Par</th>
+          <th style="text-align:right;">Montant</th>
+          <th style="text-align:right;">Solde après</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty" id="emptyState" style="display:none;">Le registre est vide. Ajoutez une première écriture ci-dessus.</div>
+  </div>
+
+  <p class="foot-note" id="footNote">Chargement du registre...</p>
+</div>
+
+<script>
+const STORAGE_KEY_TX = 'overworld_treasury_transactions';
+const STORAGE_KEY_SETTINGS = 'overworld_treasury_settings';
+
+let transactions = [];
+let settings = { guildName: 'Ma Guilde', currency: 'Golds' };
+let currentType = 'entree';
+
+const els = {
+  guildNameDisplay: document.getElementById('guildNameDisplay'),
+  guildNameInput: document.getElementById('guildNameInput'),
+  currencyInput: document.getElementById('currencyInput'),
+  settingsPanel: document.getElementById('settingsPanel'),
+  settingsToggleBtn: document.getElementById('settingsToggleBtn'),
+  saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+  seal: document.getElementById('seal'),
+  sealAmt: document.getElementById('sealAmt'),
+  sealUnit: document.getElementById('sealUnit'),
+  statEntree: document.getElementById('statEntree'),
+  statSortie: document.getElementById('statSortie'),
+  statCount: document.getElementById('statCount'),
+  typeToggle: document.getElementById('typeToggle'),
+  entryForm: document.getElementById('entryForm'),
+  amountInput: document.getElementById('amountInput'),
+  dateInput: document.getElementById('dateInput'),
+  categoryInput: document.getElementById('categoryInput'),
+  authorInput: document.getElementById('authorInput'),
+  reasonInput: document.getElementById('reasonInput'),
+  formError: document.getElementById('formError'),
+  searchInput: document.getElementById('searchInput'),
+  filterType: document.getElementById('filterType'),
+  filterCategory: document.getElementById('filterCategory'),
+  tableBody: document.getElementById('tableBody'),
+  emptyState: document.getElementById('emptyState'),
+  footNote: document.getElementById('footNote'),
+};
+
+function fmt(n){
+  const num = Number(n) || 0;
+  return num.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+els.dateInput.value = todayStr();
+
+els.typeToggle.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-type]');
+  if(!btn) return;
+  currentType = btn.dataset.type;
+  [...els.typeToggle.querySelectorAll('button')].forEach(b => b.classList.toggle('active', b === btn));
+});
+
+els.settingsToggleBtn.addEventListener('click', () => {
+  els.settingsPanel.classList.toggle('open');
+  els.guildNameInput.value = settings.guildName;
+  els.currencyInput.value = settings.currency;
+});
+
+els.saveSettingsBtn.addEventListener('click', async () => {
+  const name = els.guildNameInput.value.trim();
+  const currency = els.currencyInput.value.trim();
+  settings.guildName = name || 'Ma Guilde';
+  settings.currency = currency || 'Golds';
+  await saveSettings();
+  renderSettings();
+  els.settingsPanel.classList.remove('open');
+});
+
+function renderSettings(){
+  els.guildNameDisplay.textContent = settings.guildName;
+  els.sealUnit.textContent = settings.currency;
+}
+
+async function loadSettings(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY_SETTINGS, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      settings = { guildName: parsed.guildName || 'Ma Guilde', currency: parsed.currency || 'Golds' };
+    }
+  }catch(e){
+    settings = { guildName: 'Ma Guilde', currency: 'Golds' };
+  }
+  renderSettings();
+}
+
+async function saveSettings(){
+  try{
+    await window.storage.set(STORAGE_KEY_SETTINGS, JSON.stringify(settings), true);
+  }catch(e){
+    console.error('Erreur lors de l\'enregistrement des paramètres', e);
+  }
+}
+
+async function loadTransactions(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY_TX, true);
+    transactions = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    transactions = [];
+  }
+  render();
+}
+
+async function saveTransactions(){
+  try{
+    const result = await window.storage.set(STORAGE_KEY_TX, JSON.stringify(transactions), true);
+    if(!result){
+      els.footNote.textContent = 'Attention : l\'enregistrement a peut-être échoué. Vérifiez votre connexion.';
+    }
+  }catch(e){
+    console.error('Erreur d\'enregistrement', e);
+    els.footNote.textContent = 'Erreur lors de l\'enregistrement des données.';
+  }
+}
+
+function categoryLabel(val){
+  const map = {
+    Cotisation: 'Cotisation membre', Vente: "Vente d'objets", Don: 'Don',
+    Quete: 'Récompense de quête', Materiel: 'Achat de matériel',
+    Logistique: 'Logistique', Evenement: 'Événement', Autre: 'Autre'
+  };
+  return map[val] || val;
+}
+
+els.entryForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  els.formError.textContent = '';
+
+  const amount = parseFloat(els.amountInput.value);
+  const reason = els.reasonInput.value.trim();
+  const date = els.dateInput.value || todayStr();
+  const category = els.categoryInput.value;
+  const author = els.authorInput.value.trim();
+
+  if(!amount || amount <= 0){
+    els.formError.textContent = 'Entrez un montant valide.';
+    els.amountInput.focus();
+    return;
+  }
+  if(!reason){
+    els.formError.textContent = 'Indiquez une raison.';
+    els.reasonInput.focus();
+    return;
+  }
+
+  const entry = {
+    id: 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    type: currentType,
+    amount: Math.round(amount * 100) / 100,
+    reason,
+    date,
+    category,
+    author: author || 'Anonyme',
+    createdAt: Date.now()
+  };
+
+  transactions.push(entry);
+  await saveTransactions();
+  render();
+
+  els.amountInput.value = '';
+  els.reasonInput.value = '';
+  els.authorInput.value = '';
+  els.dateInput.value = todayStr();
+  els.amountInput.focus();
+});
+
+els.tableBody.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.del-btn');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  transactions = transactions.filter(t => t.id !== id);
+  await saveTransactions();
+  render();
+});
+
+els.searchInput.addEventListener('input', render);
+els.filterType.addEventListener('change', render);
+els.filterCategory.addEventListener('change', render);
+
+function render(){
+  const sortedAsc = [...transactions].sort((a,b) => {
+    if(a.date !== b.date) return a.date < b.date ? -1 : 1;
+    return a.createdAt - b.createdAt;
+  });
+
+  let running = 0;
+  const balanceMap = {};
+  let totalEntree = 0, totalSortie = 0;
+  sortedAsc.forEach(t => {
+    if(t.type === 'entree'){ running += t.amount; totalEntree += t.amount; }
+    else { running -= t.amount; totalSortie += t.amount; }
+    balanceMap[t.id] = running;
+  });
+
+  const solde = totalEntree - totalSortie;
+  els.sealAmt.textContent = fmt(solde);
+  els.seal.classList.toggle('pos', solde >= 0);
+  els.seal.classList.toggle('neg', solde < 0);
+  els.statEntree.textContent = fmt(totalEntree);
+  els.statSortie.textContent = fmt(totalSortie);
+  els.statCount.textContent = transactions.length;
+
+  const search = els.searchInput.value.trim().toLowerCase();
+  const typeFilter = els.filterType.value;
+  const catFilter = els.filterCategory.value;
+
+  let display = [...sortedAsc].reverse().filter(t => {
+    if(typeFilter !== 'all' && t.type !== typeFilter) return false;
+    if(catFilter !== 'all' && t.category !== catFilter) return false;
+    if(search && !t.reason.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  els.tableBody.innerHTML = '';
+  els.emptyState.style.display = display.length ? 'none' : 'block';
+
+  display.forEach(t => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${t.date}</td>
+      <td><span class="badge ${t.type}">${t.type === 'entree' ? 'Entrée' : 'Sortie'}</span></td>
+      <td>${escapeHtml(t.reason)}</td>
+      <td class="cat-tag">${escapeHtml(categoryLabel(t.category))}</td>
+      <td>${escapeHtml(t.author)}</td>
+      <td class="amt-cell ${t.type}" style="text-align:right;">${t.type === 'entree' ? '+' : '-'}${fmt(t.amount)}</td>
+      <td style="text-align:right;">${fmt(balanceMap[t.id])}</td>
+      <td style="text-align:right;"><button class="del-btn" data-id="${t.id}" title="Supprimer">✕</button></td>
+    `;
+    els.tableBody.appendChild(tr);
+  });
+
+  els.footNote.textContent = 'Données partagées avec tous les utilisateurs de ce registre · ' + transactions.length + ' écriture(s) enregistrée(s)';
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+(async function init(){
+  await loadSettings();
+  await loadTransactions();
+})();
+</script>
+</body>
+</html>
